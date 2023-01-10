@@ -1,0 +1,371 @@
+#!/usr/bin/env python
+# coding: utf-8
+​
+# # Ejercicios
+# Todas las preguntas tienen el mismo peso en esta tarea.
+# 
+# ## Parte 1
+# El siguiente código carga el conjunto de datos olímpicos (olympics.csv), que se derivó de la entrada de datos obtenidos de Wikipedia en [Medallas de los Juegos Olímpicos de todos los tiempos] (https://en.wikipedia.org/wiki/All-time_Olympic_Games_medal_table), y hace algunos limpieza de datos.
+# 
+# Las columnas están organizadas como # de juegos de verano, medallas de verano, # de juegos de invierno, medallas de invierno, número total de juegos, número total de medallas. Utilice este conjunto de datos para responder a las siguientes preguntas.
+​
+# In[1]:
+​
+​
+import pandas as pd
+​
+df = pd.read_csv('olympics.csv', index_col=0, skiprows=1)
+​
+for col in df.columns:
+    if col[:2]=='01':
+        df.rename(columns={col:'Gold'+col[4:]}, inplace=True)
+    if col[:2]=='02':
+        df.rename(columns={col:'Silver'+col[4:]}, inplace=True)
+    if col[:2]=='03':
+        df.rename(columns={col:'Bronze'+col[4:]}, inplace=True)
+    if col[:1]=='№':
+        df.rename(columns={col:'#'+col[1:]}, inplace=True)
+​
+names_ids = df.index.str.split('\s\(') # dividir el índice por '('
+​
+df.index = names_ids.str[0] # el elemento [0] es el nombre del país (índice nuevo)
+df['ID'] = names_ids.str[1].str[:3] # el elemento [1] es la abreviatura o ID (tome los primeros 3 caracteres de eso)
+​
+df = df.drop('Totals')
+df.head()
+​
+​
+# ### Pregunta 0 (Example)
+# 
+# ¿Cuál es el primer país en df?
+# 
+# *Esta función debería devolver una Serie.*
+​
+# In[2]:
+​
+​
+# Debe escribir su respuesta completa dentro de la función provista.
+def answer_zero():
+    # Esta función devuelve la fila de Afganistán, que es un objeto Serie.
+    # la descripción de la pregunta le indicará el formato general que espera el calificador automático
+    return df.iloc[0]
+answer_zero() 
+​
+​
+# ### Pregunta 1
+# ¿Qué país ha ganado más medallas de oro en los juegos de verano?
+# 
+# *Esta función debería devolver un único valor de cadena.*
+​
+# In[12]:
+​
+​
+#df[df['Gold'] ==df['Gold'].max()]
+pais = df['ID'][df['Gold'] ==df['Gold'].max()]
+print('El país ganador de más medallas de oro es ',pais)
+​
+​
+# In[6]:
+​
+​
+def answer_one():
+    return df[df['Gold'] == df['Gold'].max()].index[0]
+answer_one()
+​
+​
+# ### Pregunta 2
+# ¿Qué país tuvo la mayor diferencia entre el recuento de medallas de oro de verano e invierno?
+# 
+# *Esta función debería devolver un único valor de cadena.*
+​
+# In[28]:
+​
+​
+#df["difGoldWinter"] = df["datetime"].apply(lambda x : x.)
+#df.head()
+df['DifGold'] = abs(df['Gold']-df['Gold.1'])
+df = df.drop(['DifGold'], axis=1)
+​
+​
+# In[31]:
+​
+​
+df[(df['DifGold']!=0) & (df['Gold.1']!= 0) & (df['Gold'] != 0)].head()
+​
+​
+# In[58]:
+​
+​
+MayorDif = df[df['DifGold']==df['DifGold'].max()]
+paisDif = MayorDif['ID'].index[0] #esto hace que se imprima el index
+diferencia = MayorDif['DifGold'].iloc[0] #esto quita el índice
+​
+#diferencia
+print('Con una diferencia de', diferencia, 'entre medallas de verano e invierno, el país',paisDif,'es el mayor')
+​
+​
+# In[37]:
+​
+​
+df[df['DifGold']==df['DifGold'].max()]
+​
+​
+# ### Pregunta 3
+# ¿Qué país tiene la mayor diferencia entre el recuento de medallas de oro de verano y el recuento de medallas de oro de invierno en relación con el recuento total de medallas de oro?
+# 
+# $$\frac{Summer~Gold - Winter~Gold}{Total~Gold}$$
+# 
+# Solo incluye países que hayan ganado al menos 1 oro tanto en verano como en invierno..
+# 
+# *Esta función debería devolver un único valor de cadena.*
+​
+# In[56]:
+​
+​
+import numpy as np
+​
+​
+# In[59]:
+​
+​
+# Metodo 1 : No compila
+df['DifPorcentual2']= 
+if df['Gold.2'] != 0:
+    df['DifPorcentual2'] = df['DifGold']/df['Gold.2']
+elif df['Gold.2'] = 0
+    df['DifPorcentual2'] = 0
+​
+​
+# In[60]:
+​
+​
+#Método 2, funciona OK
+df['DifPorc'] = np.where(df['Gold.2']>0, df['DifGold']/df['Gold.2'], 0)
+​
+​
+# In[75]:
+​
+​
+MayorDifPorcentual = df[df['DifPorc'] ==df['DifPorc'][(df['Gold']!= 0) & (df['Gold.1']!=0)].max()]
+PaisMayorPorc = MayorDifPorcentual['ID'].index[0]
+print('El país con mayor diferencia porcentual es', PaisMayorPorc)
+​
+​
+# ### Pregunta 4
+# Escriba una función que cree una Serie llamada "Puntos", que es un valor ponderado donde cada medalla de oro (`Glod.2`) cuenta con 3 puntos, medallas de plata (`Silver.2`) con 2 puntos y medallas de bronce (`Bronce.2`) por 1 punto. La función debe devolver solo la columna (un objeto Serie) que creó, con los nombres de los países como índices.
+# 
+# *Esta función debería devolver una Serie llamada `Puntos` de longitud 146*
+​
+# In[77]:
+​
+​
+df['Puntos'] = df['Gold.2']*3 + df['Silver.2']*2 + df['Bronze.2']
+​
+​
+# In[84]:
+​
+​
+dfPuntos = pd.DataFrame(df['Puntos'])
+​
+​
+# In[85]:
+​
+​
+dfPuntos
+​
+​
+# ## Parte 2
+# Para el siguiente conjunto de preguntas, utilizaremos datos del censo de la [Oficina del Censo de los Estados Unidos] (http://www.census.gov). Los condados son subdivisiones políticas y geográficas de los estados de los Estados Unidos. Este conjunto de datos contiene datos de población de condados y estados de EE. UU. desde 2010 hasta 2015. [Consulte este documento](https://www2.census.gov/programs-surveys/popest/technical-documentation/file-layouts/2010-2015 /co-est2015-alldata.pdf) para obtener una descripción de los nombres de las variables.
+# The census dataset (census.csv) should be loaded as census_df. Answer questions using this as appropriate.
+# 
+# ### Pregunta 5
+# ¿Qué estado tiene la mayor cantidad de condados? (pista: ¡considere la clave sumlevel con cuidado! También la necesitará para futuras preguntas...)
+# 
+# *Esta función debería devolver un único valor de cadena.*
+​
+# In[86]:
+​
+​
+census_df = pd.read_csv('census.csv')
+census_df.head()
+​
+​
+# In[132]:
+​
+​
+census_df[census_df['STNAME']== 'Texas']
+​
+​
+# In[176]:
+​
+​
+NumCondados = pd.DataFrame(census_df[['STNAME','CTYNAME']].groupby('STNAME').count())
+CondadosDF = NumCondados.reset_index()
+​
+​
+# In[174]:
+​
+​
+CondadosDF.head()
+​
+​
+# In[175]:
+​
+​
+CondadosDF[CondadosDF['CTYNAME'] == CondadosDF['CTYNAME'].max()]#.index[0]
+​
+​
+# ### Pregunta 6
+# **Solo observando los tres condados más poblados de cada estado**, ¿cuáles son los tres estados más poblados (en orden de población más alta a población más baja)? Utilice `CENSO2010POP`.
+# 
+# *Esta función debería devolver una lista de valores de cadena.*
+​
+# In[149]:
+​
+​
+CencisSum = pd.DataFrame(census_df.groupby('STNAME').sum())
+CencisSum = CencisSum.reset_index()
+​
+​
+# In[153]:
+​
+​
+CencisMasPoblados = CencisSum.sort_values(by = 'CENSUS2010POP', ascending = False).head(3) # ordenar de forma descendente
+​
+​
+# In[158]:
+​
+​
+CencisMasPoblados = CencisMasPoblados.reset_index()
+​
+​
+# In[165]:
+​
+​
+CencisMasPoblados[['STNAME','CENSUS2010POP']]
+​
+​
+# ### Pregunta 7
+# ¿Qué condado ha tenido el mayor cambio absoluto en la población en el período 2010-2015? (Sugerencia: los valores de población se almacenan en las columnas POPESTIMATE2010 a POPESTIMATE2015, debe considerar las seis columnas).
+# 
+# p.ej. Si la población del condado en el período de 5 años es 100, 120, 80, 105, 100, 130, entonces su mayor cambio en el período sería |130-80| = 50.
+# 
+# *Esta función debería devolver un único valor de cadena.*
+​
+# In[266]:
+​
+​
+censusPob = census_df[['CTYNAME','POPESTIMATE2010','POPESTIMATE2011','POPESTIMATE2012','POPESTIMATE2013','POPESTIMATE2014','POPESTIMATE2015']]
+​
+​
+# In[268]:
+​
+​
+x = censusPob.iloc[0]
+x
+​
+​
+# In[358]:
+​
+​
+#Prueba 1
+#censusPob[censusPob.index[0]P
+Prueba = pd.DataFrame(censusPob.iloc[0])
+Prueba = Prueba.reset_index() #Esto es para que el índice se reinicie y poder aplicar el for
+diferencias = [] #se crea una lista vacía, aquí se van a guaradr los valores de todas las diferencias
+df7 = pd.DataFrame(columns=['pais', 'DifPob']) #se crea el DF donde se va a guardar, debe estar vacío
+#, conforme haga la comparación se va llenando con el valor max de diferencia de cada condado
+numFilas = Prueba.shape[0] #Nos dice el número de filas
+for i in range(1,numFilas): # de todas las filas de
+    for x in range(1,numFilas):
+        dif = abs(Prueba[0].iloc[i]-Prueba[0].iloc[x])
+        diferencias.append(dif)
+        #print(Prueba[0].iloc[i]) esto imprime los valores
+df7 = df7.append({'pais': str(Prueba[0].iloc[0]), 'DifPob': max(diferencias)}, ignore_index=True)
+#print(Prueba[0].iloc[0],max(diferencias))
+​
+​
+# In[288]:
+​
+​
+#censusPob[censusPob.index[0]P
+Prueba = pd.DataFrame(censusPob.iloc[5])
+Prueba = Prueba.reset_index()
+diferencias = []
+df7 = pd.DataFrame(columns=['pais', 'DifPob']) #se crea el DF donde se va a guardar
+​
+for i in range(1,6):
+    for x in range(1,6):
+        dif = abs(Prueba[5].iloc[i]-Prueba[5].iloc[x])
+        diferencias.append(dif)
+        #print(Prueba[0].iloc[i]) esto imprime los valores
+#df7 = df7.append({'pais': str(Prueba[0].iloc[0]), 'DifPob': max(diferencias)}, ignore_index=True)
+print(Prueba[5].iloc[0],max(diferencias))
+​
+​
+# In[359]:
+​
+​
+# Aquí lo hacemos para todas las columnas
+df7 = pd.DataFrame(columns=['Condado', 'DifPob']) #se crea el DF donde se va a guardar
+for r in range(0,3193):
+    Prueba = pd.DataFrame(censusPob.iloc[r]) # Al hacer esto prueba invierte las columnas por filas y con el índice podemos usar el for
+    Prueba = Prueba.reset_index()
+    diferencias = []
+    numFilas = Prueba.shape[0]
+    for i in range(1,numFilas):
+        for x in range(1,numFilas):
+            dif = abs(Prueba[r].iloc[i]-Prueba[r].iloc[x]) #Se comparan todas sus columnas
+            diferencias.append(dif) # todas las diferencias se guardan en un arreglo, para al final ver cual valor del arreglo es le mayor
+        #print(Prueba[0].iloc[i]) esto imprime los valores
+    df7 = df7.append({'Condado': str(Prueba[r].iloc[0]), 'DifPob': max(diferencias)}, ignore_index=True)
+#print(Prueba[0].iloc[0],max(diferencias))
+​
+​
+# In[360]:
+​
+​
+df7.sort_values(by='DifPob', ascending = False).head(1)
+​
+​
+# ### Pregunta 8
+# En este archivo de datos, Estados Unidos se divide en cuatro regiones utilizando la columna "REGIÓN".
+# 
+# Cree una consulta que busque los condados que pertenecen a las regiones 1 o 2, cuyo nombre comienza con 'Washington' y cuyo POPESTIMATE2015 fue mayor que su POPESTIMATE 2014.
+# 
+# *Esta función debe devolver un DataFrame de 5x2 con las columnas = ['STNAME', 'CTYNAME'] y el mismo ID de índice que el df del censo (ordenado de forma ascendente por índice).*
+​
+# In[351]:
+​
+​
+#census_df[census_df['STNAME']== 'Estados Unidos']
+#'Wa' in census_df['CTYNAME']
+#planets[planets.method.str.contains('Pulsa')]
+census8 =census_df[['STNAME','CTYNAME','REGION','POPESTIMATE2014','POPESTIMATE2015']][(census_df.CTYNAME.str.contains('Washington'))&
+                                (census_df['POPESTIMATE2015']>census_df['POPESTIMATE2014'])
+                                                                    & ((census_df['REGION'] ==1)| (census_df['REGION'] ==2))]
+​
+​
+# In[352]:
+​
+​
+census8 
+​
+​
+# In[353]:
+​
+​
+census8 = census8[['STNAME', 'CTYNAME']]
+​
+​
+# In[356]:
+​
+​
+census8_1 = census8.reset_index()
+​
+​
+# In[357]:
+​
+​
+#Respuesta al examen
+census8_1.sort_values(by = 'index')
